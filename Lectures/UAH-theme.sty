@@ -1,0 +1,113 @@
+% UAH-theme.sty - improved version for English text
+\ProvidesPackage{UAH-theme}[2025/03/15 Peking University Theme]
+
+\usepackage{tikz}
+\usepackage{xcolor}
+
+% Define UAH colors
+\definecolor{UAHred}{RGB}{170, 68, 68}  % The dark red color from the slide
+\definecolor{UAHgray}{RGB}{240, 240, 240}  % Light gray for backgrounds
+
+% Set the main colors
+\setbeamercolor{structure}{fg=UAHred}
+\setbeamercolor{background canvas}{bg=white}
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{alerted text}{fg=UAHred}
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{subtitle}{fg=white}
+\setbeamercolor{author}{fg=white}
+\setbeamercolor{date}{fg=white}
+\setbeamercolor{institute}{fg=white}
+\setbeamercolor{frametitle}{fg=UAHred, bg=white}
+
+% Remove navigation symbols
+\setbeamertemplate{navigation symbols}{Rahul Bhadani: \insertframenumber/\inserttotalframenumber}
+
+% Set fonts - using standard fonts to avoid issues
+\setbeamerfont{title}{size=\Large\bfseries, family=\rmfamily}
+\setbeamerfont{subtitle}{size=\large, family=\rmfamily}
+\setbeamerfont{author}{size=\normalsize, family=\rmfamily}
+\setbeamerfont{date}{size=\normalsize, family=\rmfamily}
+\setbeamerfont{institute}{size=\normalsize, family=\rmfamily}
+\setbeamerfont{frametitle}{size=\large\bfseries, family=\rmfamily}
+
+% Title page - improved for English text and better positioning
+\defbeamertemplate*{title page}{UAH}[1][]
+{
+  \begin{tikzpicture}[remember picture, overlay]
+    % Background split
+    \fill[UAHred] (current page.north east) rectangle ([xshift=-0.7\paperwidth]current page.south east);
+    \fill[white] (current page.north west) rectangle ([xshift=0.3\paperwidth]current page.south west);
+    
+    % UAH Logo
+    \node[anchor=north east] at ([xshift=-40pt, yshift=-10pt]current page.north east) {
+      \includegraphics[width=0.40\paperwidth]{UAH-logo}};
+    
+    % Title text
+    \node[anchor=north east, text width=0.5\paperwidth, align=left] 
+         at ([xshift=-40pt, yshift=-100pt]current page.north east) 
+         {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle};
+    
+    % Horizontal line
+    \draw[white, line width=1pt] ([xshift=-20pt, yshift=-140pt]current page.north east) -- 
+                                ([xshift=-270pt, yshift=-140pt]current page.north east);
+    
+    % Subtitle
+    \ifx\insertsubtitle\@empty\else
+      \node[anchor=north east, text width=0.5\paperwidth, align=left] 
+           at ([xshift=-40pt, yshift=-160pt]current page.north east) 
+           {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle};
+    \fi
+    
+    % Author - explicitly setting color to white and in a clearly visible position
+    \ifx\insertauthor\@empty\else
+      \node[anchor=north east, text width=0.5\paperwidth, align=left, text=white] 
+           at ([xshift=-40pt, yshift=-200pt]current page.north east) 
+           {\usebeamerfont{author}\textcolor{white}{\insertauthor}};
+    \fi
+    
+    % Date
+    \ifx\insertdate\@empty\else
+      \node[anchor=north east, text width=0.5\paperwidth, align=left] 
+           at ([xshift=-40pt, yshift=-230pt]current page.north east) 
+           {\usebeamerfont{date}\usebeamercolor[fg]{date}\insertdate};
+    \fi
+    
+    % Institute
+    \ifx\insertinstitute\@empty\else
+      \node[anchor=south east, text width=0.5\paperwidth, align=left] 
+           at ([xshift=-40pt, yshift=20pt]current page.south east) 
+           {\usebeamerfont{institute}\usebeamercolor[fg]{institute}\insertinstitute};
+    \fi
+  \end{tikzpicture}
+}
+
+% Regular frame template - simplified to avoid issues
+\defbeamertemplate*{frametitle}{UAH}[1][]
+{
+  \vspace*{-0.5cm}
+  \begin{tikzpicture}[remember picture, overlay]
+    % Header bar
+    \fill[UAHred] (current page.north west) rectangle ([yshift=-0.1\paperheight]current page.north east);
+    
+    % Frame title - improved positioning
+    \node[anchor=west, text=white] at ([xshift=20pt, yshift=-0.05\paperheight]current page.north west) {
+      \usebeamerfont{frametitle}\insertframetitle};
+  \end{tikzpicture}
+  
+  % Add some vertical space after the header
+  \vspace{0.07\paperheight}
+}
+
+% Logo in header - separate for better control
+\addtobeamertemplate{frametitle}{}{
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[anchor=south west] at ([xshift=-5pt, yshift=-5pt]current page.south west) {
+      \includegraphics[height=0.12\paperheight]{UAH-logo}};
+  \end{tikzpicture}
+}
+
+% Bullet points
+\setbeamertemplate{itemize item}{\color{UAHred}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{UAHred}$\blacktriangleright$}
+\setbeamertemplate{enumerate item}{\color{UAHred}\insertenumlabel.}
