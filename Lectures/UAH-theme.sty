@@ -36,16 +36,16 @@
 {
   \begin{tikzpicture}[remember picture, overlay]
     % Background split
-    \fill[UAHred] (current page.north east) rectangle ([xshift=-0.7\paperwidth]current page.south east);
-    \fill[white] (current page.north west) rectangle ([xshift=0.3\paperwidth]current page.south west);
+    \fill[UAHred] (current page.north east) rectangle ([xshift=-0.8\paperwidth]current page.south east);
+    \fill[white] (current page.north west) rectangle ([xshift=0.2\paperwidth]current page.south west);
     
     % UAH Logo
-    \node[anchor=north east] at ([xshift=-40pt, yshift=-10pt]current page.north east) {
+    \node[anchor=north east] at ([xshift=-80pt, yshift=-10pt]current page.north east) {
       \includegraphics[width=0.40\paperwidth]{UAH-logo}};
     
     % Title text
     \node[anchor=north east, text width=0.5\paperwidth, align=left] 
-         at ([xshift=-40pt, yshift=-100pt]current page.north east) 
+         at ([xshift=-80pt, yshift=-100pt]current page.north east) 
          {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle};
     
     % Horizontal line
@@ -55,30 +55,32 @@
     % Subtitle
     \ifx\insertsubtitle\@empty\else
       \node[anchor=north east, text width=0.5\paperwidth, align=left] 
-           at ([xshift=-40pt, yshift=-160pt]current page.north east) 
+           at ([xshift=-80pt, yshift=-160pt]current page.north east) 
            {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle};
+    \fi
+
+        
+    % Institute
+    \ifx\insertinstitute\@empty\else
+      \node[anchor=north east, text width=0.7\paperwidth, align=left] 
+           at ([xshift=10pt, yshift=-180pt]current page.north east) 
+           {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertinstitute};
     \fi
     
     % Author - explicitly setting color to white and in a clearly visible position
     \ifx\insertauthor\@empty\else
       \node[anchor=north east, text width=0.5\paperwidth, align=left, text=white] 
-           at ([xshift=-40pt, yshift=-200pt]current page.north east) 
+           at ([xshift=-80pt, yshift=-215pt]current page.north east) 
            {\usebeamerfont{author}\textcolor{white}{\insertauthor}};
     \fi
     
     % Date
     \ifx\insertdate\@empty\else
       \node[anchor=north east, text width=0.5\paperwidth, align=left] 
-           at ([xshift=-40pt, yshift=-230pt]current page.north east) 
+           at ([xshift=-80pt, yshift=-230pt]current page.north east) 
            {\usebeamerfont{date}\usebeamercolor[fg]{date}\insertdate};
     \fi
-    
-    % Institute
-    \ifx\insertinstitute\@empty\else
-      \node[anchor=south east, text width=0.5\paperwidth, align=left] 
-           at ([xshift=-40pt, yshift=20pt]current page.south east) 
-           {\usebeamerfont{institute}\usebeamercolor[fg]{institute}\insertinstitute};
-    \fi
+
   \end{tikzpicture}
 }
 
@@ -111,3 +113,38 @@
 \setbeamertemplate{itemize item}{\color{UAHred}$\blacktriangleright$}
 \setbeamertemplate{itemize subitem}{\color{UAHred}$\blacktriangleright$}
 \setbeamertemplate{enumerate item}{\color{UAHred}\insertenumlabel.}
+
+\definecolor{UAHredlight}{RGB}{213, 120, 120}
+
+
+% Create custom section page template
+\setbeamertemplate{section page}{%
+  \begin{tikzpicture}[remember picture,overlay]
+    % Background elements
+    \fill[UAHred] (current page.north west) rectangle ([yshift=-3cm]current page.north east);
+    \fill[UAHredlight,opacity=0.3] (current page.south west) rectangle ([yshift=3cm]current page.south east);
+    
+    % Decorative elements
+    \draw[line width=2pt,UAHred] ([xshift=1cm,yshift=-3.5cm]current page.north west) -- ([xshift=9cm,yshift=-3.5cm]current page.north west);
+    
+    % Binary code design element (representing assembly)
+    \foreach \i in {1,...,20} {
+      \foreach \j in {1,...,3} {
+        \node[text=UAHred!40,font=\tiny] at ([xshift=\i*0.5cm,yshift=-6cm-\j*0.5cm]current page.north west) {\pgfmathparse{int(random(0,1))}\pgfmathresult};
+      }
+    }
+    
+    % Main title - using \insertsection to automatically get the current section title
+    \node[text=white,font=\bfseries\LARGE,align=center] at (current page.north) [yshift=-1.5cm] {\insertsection};
+    
+    
+    % Visual elements suggesting ARM architecture
+    \draw[line width=1.5pt,UAHred] ([xshift=10cm,yshift=-4cm]current page.north east) -- ([xshift=10cm,yshift=-7cm]current page.north east);
+    \draw[line width=1.5pt,UAHred] ([xshift=10cm,yshift=-5cm]current page.north east) -- ([xshift=12cm,yshift=-5cm]current page.north east);
+    \draw[line width=1.5pt,UAHred] ([xshift=10cm,yshift=-6cm]current page.north east) -- ([xshift=11cm,yshift=-6cm]current page.north east);
+    
+    % Stylized register representation
+    \node[rectangle,fill=UAHred!20,minimum width=3cm,minimum height=1cm,draw=UAHred,thick] at ([xshift=-2cm,yshift=-5cm]current page.center) {0x00FF00FF};
+    \node[rectangle,fill=UAHred!10,minimum width=3cm,minimum height=1cm,draw=UAHred,thick] at ([xshift=-2cm,yshift=-6.5cm]current page.center) {0xABCD1234};
+  \end{tikzpicture}
+}
