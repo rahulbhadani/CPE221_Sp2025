@@ -78,7 +78,7 @@ autogobble=true
 }
 
 
-\title{08A ARM Machine Code: Data Processing Instructions}
+\title{09 ARM Machine Code: Data Processing Instructions}
 \subtitle{CPE 221}
 \author{Rahul Bhadani}
 \institute{The University of Alabama in Huntsville}
@@ -279,7 +279,7 @@ autogobble=true
             \hline
             I = 0 for LSL, LSR, ROR, ASR 
             
-            I = 1 for MOV
+            I = 1 for MOV if immediate, otherwise 0
             & 1101 & S= 1 when an instruction sets the condition flags\\
             \hline
         \end{tabular}
@@ -323,13 +323,15 @@ autogobble=true
 
     shamt5 = a constant by which the register Rm is shifted
 
+    shamt5 = 00000 for MOV
+
     \column{0.3\linewidth}
 
     \begin{tabular}{|p{2em}|p{6em}|}
         \hline
         sh & Instructions\\
         \hline
-        00 & LSL\\ \hline
+        00 & LSL/MOV\\ \hline
         01 & LSR \\ \hline
         10 & ASR \\ \hline
         11 & ROR \\ \hline
@@ -443,7 +445,7 @@ autogobble=true
         \hline
         31:28 & 27:26 & 25:20 & 19:16 & 15:12 & 11:0 \\
         \hline
-        1110 & 00 & 1 1101 0 & 0000 & 0011 & Src2 \\
+        1110 & 00 & 0 1101 0 & 0000 & 0011 & Src2 \\
         \hline
         4 bits & 2 bits & 6 bits & 4 bits & 4 bits & 12 bits \\
         \hline
@@ -473,9 +475,9 @@ autogobble=true
         
 \vspace{0.5cm}
 
-1110 0011 1010 0000 0011 0000 0000 0010
+1110 0001 1010 0000 0011 0000 0000 0010
 
-0x E 3 A 0 3 0 0 2
+0x E 1 A 0 3 0 0 2
 
 \end{center}
     
