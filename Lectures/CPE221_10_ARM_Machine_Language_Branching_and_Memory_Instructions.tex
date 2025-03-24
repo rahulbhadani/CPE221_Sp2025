@@ -1,0 +1,821 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage{UAH-theme}
+\usepackage{minted}
+\usepackage{xcolor}
+% Use a placeholder if you don't have the actual logo
+% Create a simple UAH logo placeholder
+\usepackage{tikz}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{booktabs}
+\usepackage{graphicx} 
+\usepackage[many]{tcolorbox}
+
+
+\usetikzlibrary{arrows.meta, positioning}
+\definecolor{stackaddr}{RGB}{173,216,230}
+\definecolor{stackval}{RGB}{255,228,181}
+\definecolor{stackdesc}{RGB}{144,238,144}
+\definecolor{addr}{RGB}{173,216,230}
+\definecolor{val}{RGB}{255,228,181}
+\definecolor{desc}{RGB}{144,238,144}
+
+\newcommand{\UAHLogoPlaceholder}{%
+\begin{tikzpicture}[scale=0.15]
+\draw[fill=UAHred,draw=none] (0,0) circle (5);
+\draw[white,line width=0.5mm] (0,0) circle (4);
+\draw[white,line width=0.5mm] (-2,2) -- (2,2);
+\draw[white,line width=0.5mm] (-2,-2) -- (2,-2);
+\draw[white,line width=0.5mm] (0,4) -- (0,-4);
+\end{tikzpicture}%
+}
+
+\definecolor{frame1}{RGB}{255, 230, 230}
+\definecolor{frame2}{RGB}{230, 255, 230}
+\definecolor{frame3}{RGB}{230, 230, 255}
+\definecolor{frame4}{RGB}{255, 255, 230}
+
+\definecolor{androidBlue}{HTML}{8AB4F8}
+\definecolor{androidBlueLight}{HTML}{E8F0FE}
+\definecolor{androidGreen}{HTML}{81C995}
+\definecolor{androidGreenLight}{HTML}{E6F4EA}
+
+% Red variants - based on Android's "error" and warning colors
+\definecolor{androidRed}{HTML}{F28B82}
+\definecolor{androidRedLight}{HTML}{FADAD7}
+
+% Yellow variants - based on Android's accent/warning colors
+\definecolor{androidYellow}{HTML}{FDD663}
+\definecolor{androidYellowLight}{HTML}{FEF7E0}
+
+% Purple variants - based on Android's system UI accents
+\definecolor{androidPurple}{HTML}{D7AEFB}
+\definecolor{androidPurpleLight}{HTML}{F4EAFC}
+
+% Orange variants - based on Android's notification colors
+\definecolor{androidOrange}{HTML}{FCAD70}
+\definecolor{androidOrangeLight}{HTML}{FEEADC}
+
+% Teal variants - based on Android's Material You palette
+\definecolor{androidTeal}{HTML}{78D9EC}
+\definecolor{androidTealLight}{HTML}{E6F6F9}
+
+% Gray variants - based on Android's neutral colors
+\definecolor{androidGray}{HTML}{DADCE0}
+\definecolor{androidGrayLight}{HTML}{F1F3F4}
+
+
+
+\usemintedstyle{default}
+\setminted{
+fontsize=\footnotesize,
+frame=single,
+linenos=true,
+breaklines=true,
+autogobble=true
+}
+
+
+\title{10 ARM Machine Code: Branching and Memory Instructions}
+\subtitle{CPE 221}
+\author{Rahul Bhadani}
+\institute{The University of Alabama in Huntsville}
+\date{\today}
+
+
+\begin{document}
+
+\begin{frame}
+
+    \titlepage
+
+\end{frame}
+
+\begin{frame}{Table of Content}
+    \tableofcontents
+\end{frame}
+
+
+\section{Memory Instruction}
+
+\begin{frame}
+    \sectionpage
+\end{frame}
+
+\begin{frame}{Memory Instructions}
+\begin{center}
+    \renewcommand{\arraystretch}{1.5}
+    % Instruction format table
+    \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{3.0em}|p{3.0em}|}
+    \hline
+    31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:12 & 11:0\\
+    \hline
+    cond & op & \=I & P & U & B & W & L & Rn & Rd & Src2\\
+    \hline
+    4 bits & 2 bits & 1 bit & 1 bit & 1 bit & 1 bit &  1 bit & 1 bit & 4 bits & 4 bits & 12 bits\\
+    \hline
+    \end{tabular}
+
+    \vspace{0.5cm}
+If \=I = 1 (no immediate) but with register shifting:
+
+    \begin{tabular}{|p{6em}|p{6em}|p{6em}|p{5em}|}
+        \hline
+        Bits 11:7 & Bits 6:5 & Bit 4 & Bits 3:0\\
+        \hline
+        shamt5 & sh & 1/0 & Rm \\
+        \hline
+        5-bit shift amount & specific shift instructions & 1 in the textbook, 0 in the cpulator &  Register used for shifting\\
+        \hline
+    \end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Memory Instructions}
+    \begin{center}
+        \renewcommand{\arraystretch}{1.5}
+        % Instruction format table
+        \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{3.0em}|p{3.0em}|}
+        \hline
+        31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:12 & 11:0\\
+        \hline
+        cond & op & \=I & P & U & B & W & L & Rn & Rd & Src2\\
+        \hline
+        4 bits & 2 bits & 1 bit & 1 bit & 1 bit & 1 bit &  1 bit & 1 bit & 4 bits & 4 bits & 12 bits\\
+        \hline
+        \end{tabular}
+    
+        \vspace{0.5cm}
+    If \=I = 1 (no immediate) no shifting, just a register:
+    
+        \begin{tabular}{|p{6em}|p{6em}|p{6em}|p{5em}|}
+            \hline
+            Bits 11:7 & Bits 6:5 & Bit 4 & Bits 3:0\\
+            \hline
+            shamt5 & sh & 0 & Rm \\
+            \hline
+            00000 & 00 & 0 (default) &  Register \\
+            \hline
+        \end{tabular}
+    \end{center}
+    \end{frame}
+
+\begin{frame}{Memory Instructions}
+    \begin{center}
+        \renewcommand{\arraystretch}{1.5}
+        % Instruction format table
+        \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{3.0em}|p{3.0em}|}
+        \hline
+        31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:12 & 11:0\\
+        \hline
+        cond & op & \=I & P & U & B & W & L & Rn & Rd & Src2\\
+        \hline
+        4 bits & 2 bits & 1 bit & 1 bit & 1 bit & 1 bit &  1 bit & 1 bit & 4 bits & 4 bits & 12 bits\\
+        \hline
+        \end{tabular}
+    
+        \vspace{0.5cm}
+    If \=I =0 (immediate):
+    
+        \begin{tabular}{|p{12em}|}
+            \hline
+            Bits 11:0\\
+            \hline
+            imm12 \\
+            \hline
+            12 bit immediate\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \end{frame}
+
+\begin{frame}{Memory Instructions}
+    \begin{center}
+        \renewcommand{\arraystretch}{1.5}
+        % Instruction format table
+        \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{3.0em}|p{3.0em}|}
+        \hline
+        31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:12 & 11:0\\
+        \hline
+        cond & op & \=I & P & U & B & W & L & Rn & Rd & Src2\\
+        \hline
+        4 bits & 2 bits & 1 bit & 1 bit & 1 bit & 1 bit &  1 bit & 1 bit & 4 bits & 4 bits & 12 bits\\
+        \hline
+        \end{tabular}
+    
+        \vspace{0.5cm}
+    
+        I = Immediate, P = Pre-index, U = Add, W = Writeback, L = Load, B = Byte
+    \end{center}
+    \end{frame}
+
+    \begin{frame}{Memory Instructions}
+        \begin{center}
+            \renewcommand{\arraystretch}{1.2}
+            % Instruction format table
+            \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{3.0em}|p{3.0em}|}
+            \hline
+            31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:12 & 11:0\\
+            \hline
+            cond & op & \=I & P & U & B & W & L & Rn & Rd & Src2\\
+            \hline
+            4 bits & 2 bits & 1 bit & 1 bit & 1 bit & 1 bit &  1 bit & 1 bit & 4 bits & 4 bits & 12 bits\\
+            \hline
+            \end{tabular}
+            \vspace{0.5cm}
+        
+            \begin{tabular}{|p{3.0em}|p{3.0em}|p{8.0em}|}
+                \hline
+                P & W & Index-Mode \\ \hline
+                0 & 0 & Post-index \\ \hline
+                0 & 1 & Not Supported \\ \hline
+                1 & 0 & Offset \\ \hline
+                1 & 1 & Pre-index \\ \hline
+            \end{tabular}
+            
+        \end{center}
+    \end{frame}
+
+    \begin{frame}{Memory Instructions}
+        \begin{center}
+            \renewcommand{\arraystretch}{1.2}
+            % Instruction format table
+            \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{3.0em}|p{3.0em}|}
+            \hline
+            31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:12 & 11:0\\
+            \hline
+            cond & op & \=I & P & U & B & W & L & Rn & Rd & Src2\\
+            \hline
+            4 bits & 2 bits & 1 bit & 1 bit & 1 bit & 1 bit &  1 bit & 1 bit & 4 bits & 4 bits & 12 bits\\
+            \hline
+            \end{tabular}
+            \vspace{0.5cm}
+        
+            \begin{tabular}{|p{3.0em}|p{3.0em}|p{8.0em}|}
+                \hline
+                L & B & Instruction \\ \hline
+                0 & 0 & STR \\ \hline
+                0 & 1 & STRB \\ \hline
+                1 & 0 & LDR \\ \hline
+                1 & 1 & LDRB \\ \hline
+            \end{tabular}
+            
+        \end{center}
+    \end{frame}
+
+
+    \begin{frame}{Example 1}
+        \begin{tcolorbox}[
+            enhanced,
+            colback=androidBlueLight,
+            colframe=androidBlue,
+            arc=5pt,
+            boxrule=1pt,
+            title=\textbf{},
+            fonttitle=\bfseries,
+            coltitle=black,
+            top=10pt,
+            bottom=8pt,
+            left=8pt,
+            right=8pt,
+            attach boxed title to top left={xshift=10pt, yshift=-\tcboxedtitleheight/2},
+            boxed title style={
+            colback=androidBlue,    
+                colframe=androidBlue,
+                arc=3pt,
+                boxrule=0pt,
+                left=6pt, right=6pt,
+                top=3pt, bottom=3pt
+            }
+            ]
+            Encode     \texttt{STR R11, [R5], \#-26}
+        \end{tcolorbox}
+    
+    This instruction has indexing type: post-indexing: P = 0, W = 0.
+
+    Immediate offset is subtracted from the base. So I = 0, U = 0.
+
+    \footnotesize 
+    \begin{center}
+            \renewcommand{\arraystretch}{1.2}
+            % Instruction format table
+            \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{3.0em}|p{7.0em}|}
+            \hline
+            31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:12 & 11:0\\
+            \hline
+            cond & op & \=I & P & U & B & W & L & Rn & Rd & Src2\\
+            \hline
+            1110 & 01 & 0 & 0 & 0 & 0 &  0 & 0 & 0101 & 1011 & 0000 0001 1010\\
+            \hline
+            \end{tabular}
+\vspace{0.5em}
+
+            0x E405B017
+    \end{center}
+    
+    \end{frame}
+    
+
+
+\begin{frame}{Example 2}
+    \begin{tcolorbox}[
+        enhanced,
+        colback=androidBlueLight,
+        colframe=androidBlue,
+        arc=5pt,
+        boxrule=1pt,
+        title=\textbf{},
+        fonttitle=\bfseries,
+        coltitle=black,
+        top=10pt,
+        bottom=8pt,
+        left=8pt,
+        right=8pt,
+        attach boxed title to top left={xshift=10pt, yshift=-\tcboxedtitleheight/2},
+        boxed title style={
+            colback=androidBlue,    
+            colframe=androidBlue,
+            arc=3pt,
+            boxrule=0pt,
+            left=6pt, right=6pt,
+            top=3pt, bottom=3pt
+        }
+        ]
+        Encode     \texttt{LDR R2, [R3, \#16]!}
+    \end{tcolorbox}
+
+    Pre-indexed Word Load:
+    \begin{itemize}
+        \item Load word into R2, L = 1, B = 0 (no Byte)
+        \item Base register R3
+        \item Immediate offset of 16, which is positive, U = 1
+        \item Pre-indexed (update base register) P = 1 W = 1, P
+    \end{itemize}
+
+    \footnotesize 
+    \begin{center}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{3.0em}|p{7.0em}|}
+        \hline
+        31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:12 & 11:0\\
+        \hline
+        cond & op & \=I & P & U & B & W & L & Rn & Rd & Src2\\
+        \hline
+        1110 & 01 & 0 & 1 & 1 & 0 & 1 & 1 & 0011 & 0010 & 0000 0001 0000\\
+        \hline
+        \end{tabular}
+
+        \vspace{0.5em}
+
+            0x E5B32010
+
+    \end{center}
+\end{frame}
+
+\begin{frame}{Example 3}
+    \begin{tcolorbox}[
+        enhanced,
+        colback=androidBlueLight,
+        colframe=androidBlue,
+        arc=5pt,
+        boxrule=1pt,
+        title=\textbf{},
+        fonttitle=\bfseries,
+        coltitle=black,
+        top=10pt,
+        bottom=8pt,
+        left=8pt,
+        right=8pt,
+        attach boxed title to top left={xshift=10pt, yshift=-\tcboxedtitleheight/2},
+        boxed title style={
+            colback=androidBlue,    
+            colframe=androidBlue,
+            arc=3pt,
+            boxrule=0pt,
+            left=6pt, right=6pt,
+            top=3pt, bottom=3pt
+        }
+        ]
+        Encode     \texttt{STRB R7, [R4], R6}
+    \end{tcolorbox}
+
+    Post-indexed Byte Store:
+    \begin{itemize}
+        \item Store byte from R7, L = 0, Bye, hence B = 1
+        \item Base register R4
+        \item Offset from R6 register, no Immediate, sets U = 1
+        \item Post-indexed, P = 0, W = 0
+    \end{itemize}
+
+    \footnotesize 
+    \begin{center}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{3.0em}|p{7.0em}|}
+        \hline
+        31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:12 & 11:0\\
+        \hline
+        cond & op & \=I & P & U & B & W & L & Rn & Rd & Src2\\
+        \hline
+        1110 & 01 & 1 & 0 & 1 & 1 & 0 & 0 & 0100 & 0111 & 0000 0000 0110\\
+        \hline
+        \end{tabular}
+
+        \vspace{0.5em}
+
+        0x E6C47006
+    \end{center}
+\end{frame}
+
+
+    \begin{frame}{Example 4}
+        \begin{tcolorbox}[
+            enhanced,
+            colback=androidBlueLight,
+            colframe=androidBlue,
+            arc=5pt,
+            boxrule=1pt,
+            title=\textbf{},
+            fonttitle=\bfseries,
+            coltitle=black,
+            top=10pt,
+            bottom=8pt,
+            left=8pt,
+            right=8pt,
+            attach boxed title to top left={xshift=10pt, yshift=-\tcboxedtitleheight/2},
+            boxed title style={
+                colback=androidBlue,    
+                colframe=androidBlue,
+                arc=3pt,
+                boxrule=0pt,
+                left=6pt, right=6pt,
+                top=3pt, bottom=3pt
+            }
+            ]
+            Encode     \texttt{LDR R11, [R7, R8, LSL \#2]}
+        \end{tcolorbox}
+    
+        Word Load with Register Shift Offset:
+        \begin{itemize}
+            \item Load word into R11, L = 1, B = 0
+            \item Base register R7
+            \item Offset from R8, logically shifted left by 2, U = 1, Offset, so P = 1, W = 0
+            \item Register-based offset with shift, sh = 00 for LSL
+        \end{itemize}
+    
+        \footnotesize 
+        \begin{center}
+            \renewcommand{\arraystretch}{1.2}
+            \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{3.0em}|p{7.0em}|}
+            \hline
+            31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:12 & 11:0\\
+            \hline
+            cond & op & \=I & P & U & B & W & L & Rn & Rd & Src2\\
+            \hline
+            1110 & 01 & 1 & 1 & 1 & 0 & 0 & 1 & 0111 & 1011 & 00010 00 0 1000 \\
+            \hline
+            \end{tabular}
+
+
+        \vspace{0.5em}
+
+        0x E797B108
+
+        \end{center}
+        
+    \end{frame}
+
+    \section{Branching Instruction}
+
+\begin{frame}
+    \sectionpage
+\end{frame}
+
+
+\begin{frame}{Encding Branching Instrunctions: B Label}
+
+    \begin{center}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{|p{4.0em}|p{4.0em}|p{3.5em}|p{4.5em}|p{12.0em}|}
+        \hline
+        31:28 & 27:26 & 25 & 24 & 23:0\\
+        \hline
+        cond & op & 1 & L & imm24 \\
+        \hline
+        cond & 10 & 1 & L = 0 & imm24  is in 2’s complement, used to specify an instruction
+        address relative to PC + 8.\\
+        \hline
+        \end{tabular}
+    \end{center}
+
+\end{frame}
+
+\begin{frame}{Encding Branching Instrunctions: BL Label}
+
+    Branch with Link
+
+    \begin{center}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{|p{4.0em}|p{4.0em}|p{3.5em}|p{4.5em}|p{12.0em}|}
+        \hline
+        31:28 & 27:26 & 25 & 24 & 23:0\\
+        \hline
+        cond & op & 1 & L & imm24 \\
+        \hline
+        cond & 10 & 1 & L = 1 & imm24  is in 2’s complement, used to specify an instruction
+        address relative to PC + 8.\\
+        \hline
+        \end{tabular}
+    \end{center}
+
+\end{frame}
+
+
+\begin{frame}{Example 5}
+    \begin{tcolorbox}[
+        enhanced,
+        colback=androidBlueLight,
+        colframe=androidBlue,
+        arc=5pt,
+        boxrule=1pt,
+        title=\textbf{},
+        fonttitle=\bfseries,
+        coltitle=black,
+        top=10pt,
+        bottom=8pt,
+        left=8pt,
+        right=8pt,
+        attach boxed title to top left={xshift=10pt, yshift=-\tcboxedtitleheight/2},
+        boxed title style={
+            colback=androidBlue,    
+            colframe=androidBlue,
+            arc=3pt,
+            boxrule=0pt,
+            left=6pt, right=6pt,
+            top=3pt, bottom=3pt
+        }
+        ]
+        Encode     
+        
+        \texttt{0x80A0 BLT THERE}
+
+        \vspace{0.5em}
+
+        When we have the rest of the propgram as:
+
+        \vspace{0.5em}
+
+        \texttt{0x80A4 ADD R0, R1, R2}
+
+        \texttt{0x80A8 SUB R0, R0, R9}
+
+        \texttt{0x80AC ADD SP, SP, \#8}
+
+        \texttt{0x80B0 MOV PC, LR}
+
+        \texttt{0x80B4 THERE SUB R0, R0, \#1}
+
+        \texttt{0x80B8 ADD R3, R3, \#0x5}
+
+    \end{tcolorbox}
+
+    
+\end{frame}
+
+
+\begin{frame}{Example 5}
+
+    Step 1: We calculate BTA. BTA = Branch Target Address, the instruction address to be executed when the branch is
+    taken. BLT has BTA of 0x80B4, the instruction address of THERE.
+
+    \vspace{0.5em}
+
+    Step 2: 24-bit immediate field gives the number of instructions between the BTA and PC+8 (two
+    instructions past the branch)
+    
+    \vspace{0.5em}
+
+    imm24 here is 3, as BTA is three instructions past PC + 8 (0x80A8).
+
+    \vspace{0.5em}
+
+    The processor calculates BTA from the instruction by sign-extending the 24-bit
+    immediate, shifting it left 2 (to convert word to bytes) and adding it to PC-8. 
+
+    \begin{center}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{|p{4.0em}|p{4.0em}|p{3.5em}|p{4.5em}|p{14.0em}|}
+        \hline
+        31:28 & 27:26 & 25 & 24 & 23:0\\
+        \hline
+        cond & op & 1 & L & imm24 \\
+        \hline
+        1011 & 10 & 1 & 0 & 0000 0000 0000 0000 0000 0011\\
+        \hline
+        \end{tabular}
+    \end{center}
+
+    
+\end{frame}
+
+
+\begin{frame}{Example 6}
+    If the instruction at address 0x8400 is \texttt{0xEA000005}, what is the branch target address?
+
+    \textbf{Solution:}
+
+    \begin{itemize}
+        \item This is an unconditional branch (B) instruction
+        \item The immediate field is 5
+    \item Branch target = PC+8 + (imm24 × 4)
+    \item PC+8 for the instruction at 0x8400 is 0x8408
+    \item 5 $\times$ 4 = 20 (0x14)
+    \item 0x8408 + 0x14 = 0x841C
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Conditions Encoding}
+
+    \tiny
+
+    \renewcommand{\arraystretch}{1.5}
+    \begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|l|p{6cm}|l|}
+        \hline
+        cond & Mnemonic & Name & CondEx \\
+        \hline
+        0000 & EQ & Equal & Z \\
+        \hline
+        0001 & NE & Not equal & $\overline{\text{Z}}$ \\
+        \hline
+        0010 & CS / HS & Carry set / unsigned higher or same & C \\
+        \hline
+        0011 & CC / LO & Carry clear / unsigned lower & $\overline{\text{C}}$ \\
+        \hline
+        0100 & MI & Minus / negative & N \\
+        \hline
+        0101 & PL & Plus / positive or zero & $\overline{\text{N}}$ \\
+        \hline
+        0110 & VS & Overflow / overflow set & V \\
+        \hline
+        0111 & VC & No overflow / overflow clear & $\overline{\text{V}}$ \\
+        \hline
+        1000 & HI & Unsigned higher & $\overline{\text{Z}} C$ \\
+        \hline
+        1001 & LS & Unsigned lower or same & Z OR $\overline{\text{C}}$ \\
+        \hline
+        1010 & GE & Signed greater than or equal &$\overline{N \oplus V}$ \\
+        \hline
+        1011 & LT & Signed less than & N$\oplus$V \\
+        \hline
+        1100 & GT & Signed greater than & $\overline{\text{Z}}$ $(\overline{N \oplus V})$ \\
+        \hline
+        1101 & LE & Signed less than or equal & Z OR (N$\oplus$$\text{V}$) \\
+        \hline
+        1110 & AL (or none) & Always / unconditional & Ignored \\
+        \hline
+    \end{tabular}
+\end{table}
+\end{frame}
+
+
+\section{Encoding PUSH and POP Instruction}
+
+\begin{frame}
+    \sectionpage
+\end{frame}
+
+\begin{frame}{PUSH Instruction}
+
+        \begin{tcolorbox}[
+            enhanced,
+            colback=androidBlueLight,
+            colframe=androidBlue,
+            arc=5pt,
+            boxrule=1pt,
+            title=\textbf{},
+            fonttitle=\bfseries,
+            coltitle=black,
+            top=10pt,
+            bottom=8pt,
+            left=8pt,
+            right=8pt,
+            attach boxed title to top left={xshift=10pt, yshift=-\tcboxedtitleheight/2},
+            boxed title style={
+                colback=androidBlue,    
+                colframe=androidBlue,
+                arc=3pt,
+                boxrule=0pt,
+                left=6pt, right=6pt,
+                top=3pt, bottom=3pt
+            }
+            ]
+            
+            
+            \texttt{PUSH \{R4, R5, LR\} }
+    
+            \vspace{0.5em}
+    
+            is equivalent to 
+    
+            \vspace{0.5em}
+    
+            \texttt{STMFD SP!  \{R4, R5, LR\} }
+    
+        \end{tcolorbox}
+
+        \footnotesize
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{10.0em}|}
+        \hline
+        31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:0\\
+        \hline
+        cond & op & I & P & U & S & W & L & Rn & register list\\
+        \hline
+        1110 & 10 & 0 & 1 & 0 & 0 & 1 & 0 & 1101 & 0100000000110000 \\
+        \hline
+        \end{tabular}
+
+        \vspace{0.5em}
+    
+
+        P = 1 Pre-indexing mode, U = 0 for decrement, W = 1 write back, updates SP after storing, L = 0 for STM (Store operation)
+
+        Rn is the base register which is SP. Register list uses bit masking. Hence, encoding is 0x E92D4030.
+
+        
+\end{frame}
+
+\begin{frame}{POP Instruction}
+
+    \begin{tcolorbox}[
+        enhanced,
+        colback=androidBlueLight,
+        colframe=androidBlue,
+        arc=5pt,
+        boxrule=1pt,
+        title=\textbf{},
+        fonttitle=\bfseries,
+        coltitle=black,
+        top=10pt,
+        bottom=8pt,
+        left=8pt,
+        right=8pt,
+        attach boxed title to top left={xshift=10pt, yshift=-\tcboxedtitleheight/2},
+        boxed title style={
+            colback=androidBlue,    
+            colframe=androidBlue,
+            arc=3pt,
+            boxrule=0pt,
+            left=6pt, right=6pt,
+            top=3pt, bottom=3pt
+        }
+        ]
+        
+        
+        \texttt{POP \{R4, R5, LR\} }
+
+        \vspace{0.5em}
+
+        is equivalent to 
+
+        \vspace{0.5em}
+
+        \texttt{LDMFD SP!  \{R4, R5, LR\} }
+
+    \end{tcolorbox}
+
+    \footnotesize
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{|p{3.0em}|p{3.0em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{1.5em}|p{3.0em}|p{10.0em}|}
+    \hline
+    31:28 & 27:26 & 25 & 24 & 23 & 22 & 21 & 20 & 19:16 & 15:0\\
+    \hline
+    cond & op & I & P & U & S & W & L & Rn & register list\\
+    \hline
+    1110 & 10 & 0 & 0 & 1 & 0 & 1 & 1 & 1101 & 0100000000110000 \\
+    \hline
+    \end{tabular}
+
+    \vspace{0.5em}
+
+
+    P = 0 Post-indexing mode, U = 1 for increment, W = 1 write back, updates SP after loading, L = 1 for LDM (Load operation)
+
+    Rn is the base register which is SP. Register list uses bit masking. Hence, encoding is 0x E8BD4030.
+
+    
+\end{frame}
+
+
+
+
+
+    \begin{frame}
+        \Huge{\centerline{\color{androidGreen}\textbf{The End}}}
+    \end{frame}
+    
+    
+\end{document}
