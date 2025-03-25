@@ -1,0 +1,360 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage{UAH-theme}
+\usepackage{minted}
+\usepackage{xcolor}
+% Use a placeholder if you don't have the actual logo
+% Create a simple UAH logo placeholder
+\usepackage{tikz}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{booktabs}
+\usepackage{graphicx} 
+\usepackage[many]{tcolorbox}
+
+
+\usetikzlibrary{arrows.meta, positioning}
+\usetikzlibrary{shapes, arrows, positioning}
+\definecolor{stackaddr}{RGB}{173,216,230}
+\definecolor{stackval}{RGB}{255,228,181}
+\definecolor{stackdesc}{RGB}{144,238,144}
+\definecolor{addr}{RGB}{173,216,230}
+\definecolor{val}{RGB}{255,228,181}
+\definecolor{desc}{RGB}{144,238,144}
+
+\newcommand{\UAHLogoPlaceholder}{%
+\begin{tikzpicture}[scale=0.15]
+\draw[fill=UAHred,draw=none] (0,0) circle (5);
+\draw[white,line width=0.5mm] (0,0) circle (4);
+\draw[white,line width=0.5mm] (-2,2) -- (2,2);
+\draw[white,line width=0.5mm] (-2,-2) -- (2,-2);
+\draw[white,line width=0.5mm] (0,4) -- (0,-4);
+\end{tikzpicture}%
+}
+
+\definecolor{frame1}{RGB}{255, 230, 230}
+\definecolor{frame2}{RGB}{230, 255, 230}
+\definecolor{frame3}{RGB}{230, 230, 255}
+\definecolor{frame4}{RGB}{255, 255, 230}
+
+\definecolor{androidBlue}{HTML}{8AB4F8}
+\definecolor{androidBlueLight}{HTML}{E8F0FE}
+\definecolor{androidGreen}{HTML}{81C995}
+\definecolor{androidGreenLight}{HTML}{E6F4EA}
+
+% Red variants - based on Android's "error" and warning colors
+\definecolor{androidRed}{HTML}{F28B82}
+\definecolor{androidRedLight}{HTML}{FADAD7}
+
+% Yellow variants - based on Android's accent/warning colors
+\definecolor{androidYellow}{HTML}{FDD663}
+\definecolor{androidYellowLight}{HTML}{FEF7E0}
+
+% Purple variants - based on Android's system UI accents
+\definecolor{androidPurple}{HTML}{D7AEFB}
+\definecolor{androidPurpleLight}{HTML}{F4EAFC}
+
+% Orange variants - based on Android's notification colors
+\definecolor{androidOrange}{HTML}{FCAD70}
+\definecolor{androidOrangeLight}{HTML}{FEEADC}
+
+% Teal variants - based on Android's Material You palette
+\definecolor{androidTeal}{HTML}{78D9EC}
+\definecolor{androidTealLight}{HTML}{E6F6F9}
+
+% Gray variants - based on Android's neutral colors
+\definecolor{androidGray}{HTML}{DADCE0}
+\definecolor{androidGrayLight}{HTML}{F1F3F4}
+
+
+
+\usemintedstyle{default}
+\setminted{
+fontsize=\footnotesize,
+frame=single,
+linenos=true,
+breaklines=true,
+autogobble=true
+}
+
+
+\title{12 Addressing Modes, Directives and Data Types in ARM}
+\subtitle{CPE 221}
+\author{Rahul Bhadani}
+\institute{The University of Alabama in Huntsville}
+\date{\today}
+
+
+
+\begin{document}
+
+\begin{frame}
+
+    \titlepage
+
+\end{frame}
+
+\begin{frame}{}
+    \tableofcontents
+\end{frame}
+
+\section{Addressing Modes in ARMv7}
+\begin{frame}
+    \sectionpage
+\end{frame}
+
+\begin{frame}{Immediate Addressing Mode}
+The operand is a constant value embedded in the instruction.
+    
+    \textbf{Examples}:
+    \begin{enumerate}
+        \item \texttt{MOV R0, \#0x3F}  
+        Loads \texttt{0x3F} into \texttt{R0}.
+        
+        \item \texttt{ADD R2, R3, \#255}  
+        Adds \texttt{255} to \texttt{R3} and stores result in \texttt{R2}.
+        
+        \item \texttt{CMP R4, \#100}  
+        Compares \texttt{R4} with value \texttt{100}.
+    \end{enumerate}
+
+    \begin{block}{Advantages}
+        \begin{itemize}
+        \item Fast access as no memory lookup required
+        \item Instruction encoding is efficient for small constants
+        \end{itemize}
+    \end{block}
+
+\end{frame}
+
+\begin{frame}{Register-Direct Addressing Mode}
+    Operands are values stored in registers.
+    
+    \textbf{Examples}:
+    \begin{enumerate}
+        \item \texttt{ADD R1, R2, R3}  
+        
+        Adds \texttt{R2} and \texttt{R3}, stores result in \texttt{R1}.
+        
+        \item \texttt{MOV R5, R7}  
+        
+        Copies value of \texttt{R7} into \texttt{R5}.
+        
+        \item \texttt{CMP R0, R1}  
+        
+        Compares values in \texttt{R0} and \texttt{R1}.
+    \end{enumerate}
+    \begin{block}{Advantages}
+        \begin{itemize}
+        \item Very fast execution (single cycle in most cases)
+        \item No memory access overhead
+        \end{itemize}
+    \end{block}
+
+\end{frame}
+
+\begin{frame}{Direct Addressing Mode}
+    Memory address is specified directly (via label or absolute value).
+    
+    \textbf{Examples}:
+    \begin{enumerate}
+        \item \texttt{LDR R0, =0x12345678}  
+        
+        Loads constant \texttt{0x12345678} into \texttt{R0}.
+        
+        \item \texttt{LDR R1, data}  
+        
+        Loads value at label \texttt{data} into \texttt{R1}.
+        
+    \end{enumerate}
+
+    \begin{block}{Implementation Note}
+        \begin{itemize}
+        \item ARM typically uses PC-relative addressing for direct addressing.
+        \item The assembler calculates the appropriate offset from the current PC value.
+        \end{itemize}
+    \end{block}
+
+\end{frame}
+
+\begin{frame}{Register Indirect Addressing Mode}
+    Address is stored in a register.
+    
+    \textbf{Examples}:
+    \begin{enumerate}
+        \item \texttt{LDR R0, [R1]}  
+        
+        Loads value from address in \texttt{R1} into \texttt{R0}.
+        
+        \item \texttt{STR R2, [R3]}  
+        
+        Stores \texttt{R2} at address in \texttt{R3}.
+        
+        \item \texttt{LDRB R4, [R5]}  
+        
+        Loads byte from address in \texttt{R5} into \texttt{R4}.
+    \end{enumerate}
+
+    \begin{block}{Usage}
+        \begin{itemize}
+        \item Common for accessing array elements and data structures
+        \item Efficient for pointer-based operations
+        \end{itemize}
+    \end{block}
+
+\end{frame}
+
+\begin{frame}{Pre-increment Addressing Mode}
+    Base register is updated \textbf{before} accessing memory.
+    
+    \textbf{Examples}:
+    \begin{enumerate}
+        \item \texttt{LDR R0, [R1, \#4]!}  
+        
+        \texttt{R1 += 4}, then loads from new \texttt{R1}.
+        
+        \item \texttt{LDR R2, [R3, \#-8]!}  
+        
+        \texttt{R3 -= 8}, then loads from \texttt{R3}.
+        
+        \item \texttt{STR R4, [R5, \#16]!}  
+        
+        \texttt{R5 += 16}, then stores \texttt{R4} at \texttt{R5}.
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}{Post-increment Addressing Mode}
+    Base register is updated \textbf{after} accessing memory.
+    
+    \textbf{Examples}:
+    \begin{enumerate}
+        \item \texttt{LDR R0, [R1], \#4}  
+        
+        Loads from \texttt{R1}, then \texttt{R1 += 4}.
+        
+        \item \texttt{STR R2, [R3], \#8}  
+        
+        Stores \texttt{R2} at \texttt{R3}, then \texttt{R3 += 8}.
+        
+        \item \texttt{LDRH R4, [R5], \#2}  
+        
+        Loads halfword from \texttt{R5}, then \texttt{R5 += 2}.
+    \end{enumerate}
+\end{frame}
+
+    
+\section{Directivess in ARM Assembler}
+\begin{frame}
+    \sectionpage
+\end{frame}
+
+
+\begin{frame}{Directives in ARM Assembler}
+    \textbf{Purpose}: Control assembly process or define data.
+    
+    \textbf{Common Directives}:
+    \begin{itemize}
+        \item \texttt{.text}: Marks start of code section
+        \item \texttt{.data}: Marks start of data section
+        \item \texttt{.global main}: Declares \texttt{main} as global symbol
+        \item \texttt{.word 0x1234}: Allocates 32-bit integer
+        \item \texttt{.asciz "Hello"}: Null-terminated string
+        \item \texttt{.align 4}: Aligns data to 4-byte boundary
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Memory Allocation Directives}
+    \begin{block}{Common Memory Allocation Directives}
+    \begin{itemize}
+    \item \texttt{.space} / \texttt{.skip} - Reserve a block of memory
+    \item \texttt{.align} - Align to a specified boundary
+    \item \texttt{.balign} - Byte align to a specified boundary
+    \item \texttt{.p2align} - Align to a power of 2
+    \end{itemize}
+    \end{block}
+    \begin{exampleblock}{Examples}
+    \begin{enumerate}
+    \item \texttt{.space 100} \hfill \textit{// Reserve 100 bytes of space}
+    \item \texttt{.align 4} \hfill \textit{// Align to a 4-byte (word) boundary}
+    \item \texttt{buffer: .space 1024} \hfill \textit{// Label a 1KB buffer}
+    \end{enumerate}
+    \end{exampleblock}
+\end{frame}
+
+% Data Types Section
+\section{Data Types in ARMv7}
+\begin{frame}
+    \sectionpage
+\end{frame}
+
+\begin{frame}{Data Types in ARMv7}
+\begin{block}{1. Byte (8-bit)}
+\begin{itemize}
+    \item \texttt{.byte 0xAB} - Allocates 8-bit value \texttt{0xAB}
+    \item \texttt{.byte 'A'} - Allocates ASCII character \texttt{A}
+\end{itemize}
+\end{block}
+
+\begin{block}{2. Halfword (16-bit)}
+\begin{itemize}
+    \item \texttt{.hword 0x1234} - Allocates 16-bit value
+    \item \texttt{.short 1000} - Allocates 16-bit integer
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Data Types in ARMv7 (Cont.)}
+\begin{block}{3. Word (32-bit)}
+\begin{itemize}
+    \item \texttt{.word 0xDEADBEEF} - Allocates 32-bit value
+    \item \texttt{.int 42} - Allocates 32-bit integer
+\end{itemize}
+\end{block}
+
+\begin{block}{4. Doubleword (64-bit)}
+\begin{itemize}
+    \item \texttt{.quad 0x123456789ABCDEF0} - Allocates 64-bit value
+    \item \texttt{.dword 3.14} - Allocates 64-bit float
+\end{itemize}
+\end{block}
+
+\begin{block}{5. String}
+\begin{itemize}
+    \item \texttt{.asciz "ARM"} - Null-terminated string
+    \item \texttt{.ascii "Test"} - Non-terminated string
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Bit Manipulation and Special Types}
+    \begin{block}{Bit Fields}
+    \begin{itemize}
+    \item Individual bits or bit fields within registers
+    \item Manipulated using bit manipulation instructions
+    \item Examples:
+    \begin{enumerate}
+    \item \texttt{BFI R0, R1, \#8, \#4} \hfill \textit{// Bit field insert 4 bits at position 8}
+    \item \texttt{UBFX R0, R1, \#4, \#8} \hfill \textit{// Extract 8-bit unsigned field starting at bit 4}
+    \end{enumerate}
+    \end{itemize}
+    \end{block}
+    \begin{block}{Packed BCD (Binary Coded Decimal)}
+    \begin{itemize}
+    \item Decimal digits encoded as 4-bit values
+    \item Used for certain arithmetic operations
+    \item Examples:
+    \begin{enumerate}
+    \item \texttt{UADD8 R0, R1, R2} \hfill \textit{// Add 8-bit values independently (can be used for BCD)}
+    \item \texttt{USUB8 R0, R1, R2} \hfill \textit{// Subtract 8-bit values independently}
+    \end{enumerate}
+    \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \Huge{\centerline{\color{androidGreen}\textbf{The End}}}
+\end{frame}
+
+
+\end{document}
