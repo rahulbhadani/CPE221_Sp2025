@@ -1,0 +1,306 @@
+\documentclass[12pt, xcolor=dvipsnames,svgnames,x11names]{article}
+\usepackage{xcolor}
+%\usepackage{universityos}
+\usepackage{xspace}
+\usepackage{url}
+\usepackage[colorlinks=true,bookmarks=false,linkcolor=black,urlcolor=blue,citecolor=black]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[top=1in,bottom=1in,left=1in,right=1in]{geometry}
+\usepackage{multicol}
+\usepackage{pgfplots}
+\usetikzlibrary{circuits.logic.US}
+% \usepackage{tgschola}
+\let\temp\rmdefault
+\usepackage{mathpazo}
+\let\rmdefault\temp
+
+\definecolor{roseRed}{HTML}{e20047}
+\definecolor{coolGray}{HTML}{474747} % Neutral gray to contrast roseRed
+\definecolor{mocha}{HTML}{a47864}
+\definecolor{sage}{HTML}{8a9a5b}
+\definecolor{dustyblue}{HTML}{6e8ca0}
+\definecolor{terracotta}{HTML}{c87f5b}
+\definecolor{lavender}{HTML}{9d8bb0}
+\definecolor{darkmocha}{HTML}{7a5a4b}
+\definecolor{darksage}{HTML}{667244}
+\definecolor{darkdustyblue}{HTML}{526878}
+\definecolor{darkterracotta}{HTML}{9e6347}
+\definecolor{darklavender}{HTML}{766688}
+\definecolor{winery}{HTML}{7e212a}
+
+\definecolor{lightmocha}{HTML}{c2a190}
+\definecolor{lightmocha1}{HTML}{d1b09c}
+\definecolor{lightmocha2}{HTML}{e2c4b0}
+\definecolor{lightmocha3}{HTML}{f0d9c7}
+
+\definecolor{androidBlue}{HTML}{8AB4F8}
+\definecolor{androidBlueLight}{HTML}{E8F0FE}
+\definecolor{androidGreen}{HTML}{81C995}
+\definecolor{androidGreenLight}{HTML}{E6F4EA}
+
+% Red variants - based on Android's "error" and warning colors
+\definecolor{androidRed}{HTML}{F28B82}
+\definecolor{androidRedLight}{HTML}{FADAD7}
+
+% Yellow variants - based on Android's accent/warning colors
+\definecolor{androidYellow}{HTML}{FDD663}
+\definecolor{androidYellowLight}{HTML}{FEF7E0}
+
+% Purple variants - based on Android's system UI accents
+\definecolor{androidPurple}{HTML}{D7AEFB}
+\definecolor{androidPurpleLight}{HTML}{F4EAFC}
+
+% Orange variants - based on Android's notification colors
+\definecolor{androidOrange}{HTML}{FCAD70}
+\definecolor{androidOrangeLight}{HTML}{FEEADC}
+
+% Teal variants - based on Android's Material You palette
+\definecolor{androidTeal}{HTML}{78D9EC}
+\definecolor{androidTealLight}{HTML}{E6F6F9}
+
+% Gray variants - based on Android's neutral colors
+\definecolor{androidGray}{HTML}{DADCE0}
+\definecolor{androidGrayLight}{HTML}{F1F3F4}
+
+\usepackage{biolinum} % included with the {Libertine} font package
+\renewcommand{\familydefault}{\sfdefault}
+
+\usepackage{minted}
+\usemintedstyle{manni}
+
+\usepackage[many]{tcolorbox}
+\usepackage{CJKutf8}
+
+% Redefine \maketitle to include tcolorbox
+\makeatletter
+\renewcommand{\maketitle}{%
+    \begin{center}
+        \begin{tcolorbox}[
+            enhanced,
+            colback=white,
+            colframe=red!70!black,
+            arc=0mm,
+            title={\textcolor{white}{\bfseries CPE 221 \@title}},
+            coltitle=white,
+            fonttitle=\bfseries\large,
+            attach boxed title to top left={xshift=10pt, yshift=-\tcboxedtitleheight/2},
+            boxed title style={
+            sharp corners,
+            colback=red!70!black,
+            frame hidden,
+            boxrule=0pt,
+            left=10pt, right=10pt,
+            top=3pt, bottom=3pt
+            }
+        ]
+        \large
+        \vspace{10pt}
+        \noindent Student Name (as in Canvas): \underline{\hspace{8cm}} 
+        
+        \vspace{10pt}
+        \noindent A Number: \underline{\hspace{12cm}}
+
+        \vspace{10pt}
+        \noindent Points: 10
+
+            \end{tcolorbox}
+    \end{center}
+}
+\makeatother
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}%
+
+\input{common}
+
+\newcommand{\hw}{Classwork 14: Floating Point Operations ARM}
+\newcommand{\duedate}{March 31, 2025}
+\newcommand{\hwturnin}{cw14}
+
+% Add showanswer toggle (set to "yes" for solutions, anything else for student version)
+\usepackage{ifthen}
+\newcommand{\showanswer}{yes}
+
+\newenvironment{multiequation}[1][]{%
+    \begin{equation}%
+    \begin{aligned}%
+        \ifx#1\@empty\else\label{#1}\fi%
+}{%
+    \end{aligned}%
+\end{equation}% 
+}
+\pagestyle{fancy}
+
+\lhead{\footnotesize{\coursenumber, \courseterm}, \footnotesize{The University of Alabama in Huntsville}}
+\chead{}
+\rhead{\footnotesize{\emph{\hw}}}
+\lfoot{\footnotesize{\instructorname}}
+\cfoot{\footnotesize{\thepage}}
+\rfoot{\footnotesize{\textit{Last Revised:~\today}}}
+\renewcommand{\headrulewidth}{0.1pt}
+\renewcommand{\footrulewidth}{0.1pt}
+\newcommand{\minipagewidth}{0.8\columnwidth}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+
+\renewcommand{\headrulewidth}{0.1pt}
+\renewcommand{\footrulewidth}{0.1pt}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\usepackage{mdframed} 
+
+
+\begin{document}
+
+
+\title{\textsc{\hw}}
+\author{Instructor: \instructorname}
+\date{Due: \duedate\\ 100 points}
+
+\maketitle
+
+\section{ADD Two Floating Point Arrays}
+
+Write an ARMv7 Program to add two floating point arrays declared in the \texttt{.data} section of the ARM program.
+
+\begin{minted}
+    [
+    framesep=1mm,
+    baselinestretch=1.2,
+    bgcolor=white,
+    fontsize=\normalsize
+    ]
+    {asm}
+    .global _start
+    _start:
+
+    @ write your code below
+
+    
+    done: B done
+    
+    @ First array
+    ARRAY_A: .float 1.1, 2.34, 3.141, 4.567, 5.99
+    @ Second array
+    ARRAY_B: .float 0.9, 1.66, 2.859, 3.433, 4.01
+    @ Result array (5 elements × 4 bytes)
+    RESULT_ARRAY: .space 20
+    @ Number of elements
+    ARRAY_LEN: .word 5
+    
+
+\end{minted}
+
+
+% \ifthenelse{\equal{\showanswer}{yes}}{
+% solution boxes appear here
+% Show solution and explanation when showanswer=yes
+\begin{tcolorbox}[
+    enhanced,
+    colback=androidBlueLight,
+    colframe=androidBlue,
+    arc=5pt,
+    boxrule=1pt,
+    title=\textbf{Solution},
+    fonttitle=\bfseries,
+    coltitle=black,
+    top=10pt,
+    bottom=8pt,
+    left=8pt,
+    right=8pt,
+    attach boxed title to top left={xshift=10pt, yshift=-\tcboxedtitleheight/2},
+    boxed title style={
+    colback=androidBlue,    
+        colframe=androidBlue,
+        arc=3pt,
+        boxrule=0pt,
+        left=6pt, right=6pt,
+        top=3pt, bottom=3pt
+    }
+    ]
+    \begin{minted}
+    [
+    framesep=1mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize
+    ]
+    {asm}
+    .global _start
+    _start:
+        @ Initialize pointers and counter
+        @ R0 = pointer to ARRAY_A
+        LDR R0, =ARRAY_A
+        @ R1 = pointer to ARRAY_B
+        LDR R1, =ARRAY_B
+        @ R2 = pointer to RESULT_ARRAY
+        LDR R2, =RESULT_ARRAY
+        @ R3 = element counter
+        LDR R3, ARRAY_LEN
+    ADD_LOOP:
+        @ Load elements from both arrays
+        VLDR S0, [R0]
+        VLDR S1, [R1]
+        @ Add the floating-point numbers
+        @ S2 = S0 + S1
+        VADD.F32 S2, S0, S1
+        @ Store the result
+        VSTR S2, [R2]
+        @ Increment pointers (4 bytes per float)
+        @ Move to next ARRAY_A element
+        ADD R0, R0, #4
+        @ Move to next ARRAY_B element
+        ADD R1, R1, #4
+        @ Move to next RESULT_ARRAY position
+        ADD R2, R2, #4
+        @ Decrement counter and loop if not zero
+        SUBS R3, R3, #1
+        BNE ADD_LOOP
+    
+    done: B done
+    
+    @ First array
+    ARRAY_A: .float 1.1, 2.34, 3.141, 4.567, 5.99
+    @ Second array
+    ARRAY_B: .float 0.9, 1.66, 2.859, 3.433, 4.01
+    @ Result array (5 elements × 4 bytes)
+    RESULT_ARRAY: .space 20
+    @ Number of elements
+    ARRAY_LEN: .word 5
+\end{minted}
+\end{tcolorbox}
+
+% }
+% {
+% Show answer box when showanswer is not "yes"
+% \begin{tcolorbox}[
+%     enhanced,
+%     colback=white,
+%     colframe=androidYellow,
+%     arc=5pt,
+%     boxrule=1pt,
+%     title=\textbf{Your Answer},
+%     fonttitle=\bfseries,
+%     coltitle=black,
+%     top=10pt,
+%     bottom=8pt,
+%     left=8pt,
+%     right=8pt,
+%     attach boxed title to top left={xshift=10pt, yshift=-\tcboxedtitleheight/2},
+%     boxed title style={
+%         colback=androidYellow,
+%         colframe=coolGray,
+%         arc=3pt,
+%         boxrule=0pt,
+%         left=6pt, right=6pt,
+%         top=3pt, bottom=3pt
+%     },
+%     height=9in,
+%     ]
+%     % Empty box for student answer
+% \end{tcolorbox}
+% }
+
+
+\end{document}
